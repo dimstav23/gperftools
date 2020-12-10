@@ -129,6 +129,7 @@ class CpuProfiler {
   // ProfileHandlerUnregisterCallback.
   ProfileHandlerToken* prof_handler_token_;
 
+ public:
   // Sets up a callback to receive SIGPROF interrupt.
   void EnableHandler();
 
@@ -322,8 +323,10 @@ void CpuProfiler::EnableHandler() {
 }
 
 void CpuProfiler::DisableHandler() {
-  RAW_CHECK(prof_handler_token_ != NULL, "SIGPROF handler is not registered");
-  ProfileHandlerUnregisterCallback(prof_handler_token_);
+  //RAW_CHECK(prof_handler_token_ != NULL, "SIGPROF handler is not registered");
+  //ProfileHandlerUnregisterCallback(prof_handler_token_);
+  if (prof_handler_token_ != NULL)
+	  ProfileHandlerUnregisterCallback(prof_handler_token_);
   prof_handler_token_ = NULL;
 }
 
@@ -397,6 +400,14 @@ extern "C" PERFTOOLS_DLL_DECL void ProfilerStop() {
   CpuProfiler::instance_.Stop();
 }
 
+extern "C" PERFTOOLS_DLL_DECL void ProfilerPause() {
+	CpuProfiler::instance_.DisableHandler();
+}
+
+extern "C" PERFTOOLS_DLL_DECL void ProfilerResume() {
+	CpuProfiler::instance_.EnableHandler();
+}
+
 extern "C" PERFTOOLS_DLL_DECL void ProfilerGetCurrentState(
     ProfilerState* state) {
   CpuProfiler::instance_.GetCurrentState(state);
@@ -429,6 +440,8 @@ extern "C" int ProfilerGetStackTrace(
     void** result, int max_depth, int skip_count, const void *uc) {
   return 0;
 }
+extern "C" void ProfilerPause() { }
+extern "C" void ProfilerResume() { }
 
 #endif  // OS_CYGWIN
 
